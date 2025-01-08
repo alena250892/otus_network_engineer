@@ -1,0 +1,106 @@
+
+!
+! Last configuration change at 21:52:28 UTC Wed Jan 8 2025 by loggin
+!
+version 15.2
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+service compress-config
+!
+hostname S2
+!
+boot-start-marker
+boot-end-marker
+!
+!
+enable secret 5 $1$UN2X$SWGYC1e1OHECXgbMOD5q91
+!
+username loggin secret 5 $1$n9P.$7CJDmeeKKm5QZK4FWEZue1
+no aaa new-model
+!
+!
+!
+!
+!
+!
+!
+!
+no ip domain-lookup
+ip cef
+no ipv6 cef
+password encryption aes
+!
+!
+!
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+!
+vlan internal allocation policy ascending
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Ethernet0/0
+ no shutdown
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ spanning-tree cost 100
+!
+interface Ethernet0/1
+ no shutdown
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+!
+interface Ethernet0/2
+ no shutdown
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ spanning-tree vlan 1 cost 100
+ spanning-tree cost 100
+!
+interface Ethernet0/3
+ no shutdown
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+!
+interface Vlan1
+ no shutdown
+ ip address 192.168.1.2 255.255.255.0
+!
+ip forward-protocol nd
+!
+no ip http server
+no ip http secure-server
+!
+!
+!
+!
+!
+!
+control-plane
+!
+banner motd ***ONLY AUTHORIZED USERS***
+!
+line con 0
+ logging synchronous
+ login local
+line aux 0
+line vty 0
+ logging synchronous
+ login local
+line vty 1 4
+ login local
+!
+!
+end
