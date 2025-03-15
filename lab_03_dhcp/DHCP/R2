@@ -1,0 +1,120 @@
+R2#sh run
+Building configuration...
+
+Current configuration : 1316 bytes
+!
+version 15.4
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname R2
+!
+boot-start-marker
+boot-end-marker
+!
+!
+enable secret 5 $1$qisU$SiLC53dCwNNdLO1GZ1wQ9/
+!
+no aaa new-model
+clock timezone UTS 3 0
+mmi polling-interval 60
+no mmi auto-configure
+no mmi pvc
+mmi snmp-timeout 180
+!
+!
+!
+!
+!
+!
+!
+!
+
+
+!
+ip dhcp excluded-address 192.168.1.97 192.168.1.102
+!
+!
+!
+no ip domain lookup
+ip cef
+no ipv6 cef
+!
+multilink bundle-name authenticated
+!
+password encryption aes
+!
+!
+!
+!
+!
+!
+!
+username loggin secret 5 $1$HlBi$pBFOagrlBrU3jOFOwlG9l.
+!
+redundancy
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Ethernet0/0
+ description Link_TO_RT1
+ ip address 10.0.0.2 255.255.255.252
+!
+interface Ethernet0/0.1
+!
+interface Ethernet0/1
+ no ip address
+!
+interface Ethernet0/1.1
+ encapsulation dot1Q 1 native
+ ip address 192.168.1.97 255.255.255.240
+ ip helper-address 192.168.1.65
+!
+interface Ethernet0/1.1000
+!
+interface Ethernet0/2
+ no ip address
+!
+interface Ethernet0/3
+ no ip address
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+ip route 0.0.0.0 0.0.0.0 10.0.0.1
+!
+!
+!
+!
+control-plane
+!
+!
+!
+!
+!
+!
+!
+banner motd ^C***ONLY AUTH USERS***^C
+!
+line con 0
+ logging synchronous
+ login local
+line aux 0
+line vty 0 4
+ login local
+ transport input none

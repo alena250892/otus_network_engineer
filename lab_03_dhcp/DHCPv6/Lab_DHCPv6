@@ -1,0 +1,220 @@
+PART 1 SLAAC
+
+CONFIG R1
+
+hostname R1
+!
+!
+!
+enable secret 5 $1$qisU$SiLC53dCwNNdLO1GZ1wQ9/
+!
+!
+!
+clock timezone UTS 3
+!
+!
+!
+!
+ip cef
+ipv6 unicast-routing
+!
+ipv6 cef
+!
+!
+!
+username loggin secret 5 $1$HlBi$pBFOagrlBrU3jOFOwlG9l.
+!
+!
+license udi pid CISCO2911/K9 sn FTX1524S3BV-
+!
+!
+!
+!
+!
+!
+!
+!
+!
+no ip domain-lookup
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface GigabitEthernet0/0
+ no ip address
+ duplex auto
+ speed auto
+ ipv6 address FE80::1 link-local
+ ipv6 address 2001:DB8:ACAD:2::1/64
+!
+interface GigabitEthernet0/1
+ no ip address
+ duplex auto
+ speed auto
+ ipv6 address FE80::1 link-local
+ ipv6 address 2001:DB8:ACAD:1::1/64
+ ipv6 enable
+!
+interface GigabitEthernet0/2
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+ip classless
+!
+ip flow-export version 9
+!
+ipv6 route ::/0 2001:DB8:ACAD:2::2
+!
+!
+banner motd ^C *ONLY AUTH USERS* ^C
+!
+!
+!
+!
+!
+line con 0
+ logging synchronous
+ login local
+!
+line aux 0
+!
+line vty 0 4
+ login local
+ transport input none
+!
+!
+!
+end
+
+PC1
+
+C:\>ipv6config /all
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: 
+   Physical Address................: 000C.CFA0.8308
+   Link-local IPv6 Address.........: FE80::20C:CFFF:FEA0:8308
+   IPv6 Address....................: 2001:DB8:ACAD:1:20C:CFFF:FEA0:8308
+   Default Gateway.................: FE80::1
+   DNS Servers.....................: ::
+   DHCPv6 IAID.....................: 
+   DHCPv6 Client DUID..............: 00-01-00-01-4A-38-A9-C1-00-0C-CF-A0-83-08
+
+
+
+
+
+PART 2 DHCPV6 STATELESS
+
+
+R1 Config
+
+
+ipv6 dhcp pool R1-Stateless
+ dns-server 2001:DB8:ACAD::254
+ domain-name STATELESS.com
+!
+
+interface GigabitEthernet0/1
+ no ip address
+ duplex auto
+ speed auto
+ ipv6 address FE80::1 link-local
+ ipv6 address 2001:DB8:ACAD:1::1/64
+ ipv6 nd other-config-flag
+ ipv6 enable
+ ipv6 dhcp server R1-Stateless
+
+
+PC1
+
+
+C:\>ipv6config /all
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: STATELESS.com 
+   Physical Address................: 000C.CFA0.8308
+   Link-local IPv6 Address.........: FE80::20C:CFFF:FEA0:8308
+   IPv6 Address....................: 2001:DB8:ACAD:1:20C:CFFF:FEA0:8308
+   Default Gateway.................: FE80::1
+   DNS Servers.....................: 2001:DB8:ACAD::254
+   DHCPv6 IAID.....................: 6319373
+   DHCPv6 Client DUID..............: 00-01-00-01-4A-38-A9-C1-00-0C-CF-A0-83-08
+
+
+
+
+PART 3 STATEFULL DHCPV6
+
+R1
+ipv6 dhcp pool R2-STATEFUL
+ address prefix 2001:DB8:ACAD:3:AAA::/80
+ dns-server 2001:DB8:ACAD::254
+ domain-name STATEFUL.com
+
+
+interface Ethernet0/0
+ no ip address
+ ipv6 address FE80::1 link-local
+ ipv6 address 2001:DB8:ACAD:2::1/64
+ ipv6 enable
+ ipv6 dhcp server R2-STATEFUL
+
+ipv6 route ::/0 2001:DB8:ACAD:2::2
+
+
+R2
+
+
+interface Ethernet0/1
+ no ip address
+ ipv6 address FE80::1 link-local
+ ipv6 address 2001:DB8:ACAD:3::1/64
+ ipv6 enable
+ ipv6 nd managed-config-flag
+ ipv6 dhcp relay destination 2001:DB8:ACAD:2::1 Ethernet0/0
+
+ipv6 route ::/0 2001:DB8:ACAD:2::1
+
+Client (Router interface)
+interface Ethernet0/0
+ no ip address
+ ipv6 address dhcp
+ ipv6 enable
+
+
+Router#sh ipv6 dhcp interface ethernet 0/0
+Ethernet0/0 is in client mode
+  Prefix State is IDLE
+  Address State is OPEN
+  Renew for address will be sent in 11:59:13
+  List of known servers:
+    Reachable via address: FE80::1
+    DUID: 00030001AABBCC007000
+    Preference: 0
+    Configuration parameters:
+      IA NA: IA ID 0x00030001, T1 43200, T2 69120
+        Address: 2001:DB8:ACAD:3:AAA:8DC:D8:47C2/128
+                preferred lifetime 86400, valid lifetime 172800
+                expires at Mar 17 2025 05:51 PM (172754 seconds)
+      DNS server: 2001:DB8:ACAD::254
+      Domain name: STATEFUL.com
+      Information refresh time: 0
+  Prefix Rapid-Commit: disabled
+  Address Rapid-Commit: disabled
+
+
+
