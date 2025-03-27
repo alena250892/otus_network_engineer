@@ -1,0 +1,163 @@
+STEP 1 IP SLA FROM RT25-26
+
+interface Ethernet0/0
+ ip address 172.16.1.15 255.255.255.254
+!
+interface Ethernet0/1
+ ip address 172.16.1.13 255.255.255.254
+
+ip sla 1
+ icmp-echo 172.16.1.14 source-ip 172.16.1.15
+ frequency 10
+ip sla schedule 1 life forever start-time now
+ip sla 2
+ icmp-echo 172.16.1.12 source-ip 172.16.1.13
+ frequency 10
+ip sla schedule 2 life forever start-time now
+
+track 1 ip sla 1 reachability
+ delay down 90 up 90
+!
+track 2 ip sla 2 reachability
+ delay down 90 up 90
+
+ ------check-------
+
+ R28#sh track 1
+Track 1
+  IP SLA 1 reachability
+  Reachability is Up
+    2 changes, last change 00:09:03
+  Delay up 90 secs, down 90 secs
+  Latest operation return code: OK
+  Latest RTT (millisecs) 2
+  Tracked by:
+    Route Map 0
+R28#
+R28#sh track 2
+Track 2
+  IP SLA 2 reachability
+  Reachability is Up
+    4 changes, last change 00:09:08
+  Delay up 90 secs, down 90 secs
+  Latest operation return code: OK
+  Latest RTT (millisecs) 3
+  Tracked by:
+    Route Map 0
+
+Step 2 prefix-list+route-mup
+
+ip prefix-list CHKD1 seq 5 permit 10.70.10.0/24
+!
+ip prefix-list CHKD2 seq 5 permit 10.70.20.0/24
+
+route-map CHKD1 permit 10
+ match ip address prefix-list CHKD1
+ set ip next-hop verify-availability 172.16.1.14 10 track 1
+!
+route-map CHKD2 permit 20
+ match ip address prefix-list CHKD2
+ set ip next-hop verify-availability 172.16.1.12 10 track 2
+
+ interface Ethernet0/2.10
+ encapsulation dot1Q 10
+ ip address 10.70.10.1 255.255.255.0
+ ip virtual-reassembly in
+ ip policy route-map CHKD1
+!
+interface Ethernet0/2.20
+ encapsulation dot1Q 20
+ ip address 10.70.20.1 255.255.255.0
+ ip virtual-reassembly in
+ ip policy route-map CHKD2
+
+
+ R26 +ip route 10.70.10.0 255.255.255.0 172.16.1.15
+ R25 +ip route 10.70.20.0 255.255.255.0 172.16.1.13
+
+ ------check------
+ PC30 trace to lo1 RT26
+
+ VPCS> trace 10.50.0.26
+trace to 10.50.0.26, 8 hops max, press Ctrl+C to stop
+ 1   10.70.10.1   3.796 ms  4.182 ms  3.747 ms
+ 2   *172.16.1.14   5.867 ms (ICMP type:3, code:3, Destination port unreachable)  *
+
+
+PC31 trace to lo1 RT25
+VPCS> trace 10.50.0.25
+trace to 10.50.0.25, 8 hops max, press Ctrl+C to stop
+ 1   10.70.20.1   3.790 ms  4.119 ms  3.875 ms
+ 2   *172.16.1.12   5.647 ms (ICMP type:3, code:3, Destination port unreachable)  *
+
+
+ Step 3 backup route
+
+ Add 2nd route in route-map
+
+ route-map CHKD1 permit 20
+ match ip address prefix-list CHKD1
+ set ip next-hop verify-availability 172.16.1.12 10 track 2
+!
+route-map CHKD2 permit 30
+ match ip address prefix-list CHKD2
+ set ip next-hop verify-availability 172.16.1.14 10 track 1
+
+ R28#sh route-map
+route-map CHKD1, permit, sequence 10
+  Match clauses:
+    ip address prefix-lists: CHKD1
+  Set clauses:
+    ip next-hop verify-availability 172.16.1.14 10 track 1  [up]
+  Policy routing matches: 160 packets, 17316 bytes
+route-map CHKD1, permit, sequence 20
+  Match clauses:
+    ip address prefix-lists: CHKD1
+  Set clauses:
+    ip next-hop verify-availability 172.16.1.12 10 track 2  [up]
+  Policy routing matches: 0 packets, 0 bytes
+route-map CHKD2, permit, sequence 20
+  Match clauses:
+    ip address prefix-lists: CHKD2
+  Set clauses:
+    ip next-hop verify-availability 172.16.1.12 10 track 2  [up]
+  Policy routing matches: 141 packets, 15222 bytes
+route-map CHKD2, permit, sequence 30
+  Match clauses:
+    ip address prefix-lists: CHKD2
+  Set clauses:
+    ip next-hop verify-availability 172.16.1.14 10 track 1  [up]
+  Policy routing matches: 0 packets, 0 bytes
+
+  -----check---
+
+  1 shutdown link to RT26
+
+  for example add route on rt25, rt26
+R26(config)#do sh run | i ip r
+ip route 10.70.10.0 255.255.255.0 172.16.1.15
+ip route 10.70.10.0 255.255.255.0 10.50.2.25
+
+R25#sh run | i ip r
+ip route 10.70.10.0 255.255.255.0 172.16.1.13
+ip route 10.70.20.0 255.255.255.0 172.16.1.13
+ip route 172.16.1.14 255.255.255.255 10.50.2.26
+
+check ping on PC30 to RT 26
+
+VPCS> trace 172.16.1.14
+trace to 172.16.1.14, 8 hops max, press Ctrl+C to stop
+ 1   10.70.10.1   7.064 ms  3.574 ms  2.139 ms
+ 2   172.16.1.12   5.372 ms  6.112 ms  8.186 ms
+ 3   *10.50.2.26   4.321 ms (ICMP type:3, code:3, Destination port unreachable)  *
+
+VPCS> ping 172.16.1.14
+
+84 bytes from 172.16.1.14 icmp_seq=1 ttl=253 time=6.245 ms
+84 bytes from 172.16.1.14 icmp_seq=2 ttl=253 time=6.113 ms
+84 bytes from 172.16.1.14 icmp_seq=3 ttl=253 time=1.566 ms
+84 bytes from 172.16.1.14 icmp_seq=4 ttl=253 time=6.798 ms
+84 bytes from 172.16.1.14 icmp_seq=5 ttl=253 time=3.436 ms
+
+
+
