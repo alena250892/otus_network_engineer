@@ -1,0 +1,16 @@
+!ADD STATIC ROUTE R27 
+sh run | i ip r
+ip route 0.0.0.0 0.0.0.0 172.16.1.10
+!CHECKING
+ping 10.50.0.25
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.50.0.25, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 1/1/2 ms
+R27#tr
+R27#traceroute 10.50.0.25
+Type escape sequence to abort.
+Tracing the route to 10.50.0.25
+VRF info: (vrf in name/id, vrf out name/id)
+  1 172.16.1.10 3 msec 1 msec *
+R27#c
