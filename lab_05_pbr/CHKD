@@ -93,45 +93,14 @@ trace to 10.50.0.25, 8 hops max, press Ctrl+C to stop
 
  Step 3 backup route
 
- Add 2nd route in route-map
-
- route-map CHKD1 permit 20
- match ip address prefix-list CHKD1
- set ip next-hop verify-availability 172.16.1.12 10 track 2
-!
-route-map CHKD2 permit 30
- match ip address prefix-list CHKD2
- set ip next-hop verify-availability 172.16.1.14 10 track 1
-
- R28#sh route-map
-route-map CHKD1, permit, sequence 10
-  Match clauses:
-    ip address prefix-lists: CHKD1
-  Set clauses:
-    ip next-hop verify-availability 172.16.1.14 10 track 1  [up]
-  Policy routing matches: 160 packets, 17316 bytes
-route-map CHKD1, permit, sequence 20
-  Match clauses:
-    ip address prefix-lists: CHKD1
-  Set clauses:
-    ip next-hop verify-availability 172.16.1.12 10 track 2  [up]
-  Policy routing matches: 0 packets, 0 bytes
-route-map CHKD2, permit, sequence 20
-  Match clauses:
-    ip address prefix-lists: CHKD2
-  Set clauses:
-    ip next-hop verify-availability 172.16.1.12 10 track 2  [up]
-  Policy routing matches: 141 packets, 15222 bytes
-route-map CHKD2, permit, sequence 30
-  Match clauses:
-    ip address prefix-lists: CHKD2
-  Set clauses:
-    ip next-hop verify-availability 172.16.1.14 10 track 1  [up]
-  Policy routing matches: 0 packets, 0 bytes
+ ADD metric on routes RT28
+ sh run | i ip r
+ip route 0.0.0.0 0.0.0.0 172.16.1.14 10
+ip route 0.0.0.0 0.0.0.0 172.16.1.12 20
 
   -----check---
 
-  1 shutdown link to RT26
+  1 shutdown interface ethernet 0/0 - link  to RT26 on RT28
 
   for example add route on rt25, rt26
 R26(config)#do sh run | i ip r
@@ -143,7 +112,7 @@ ip route 10.70.10.0 255.255.255.0 172.16.1.13
 ip route 10.70.20.0 255.255.255.0 172.16.1.13
 ip route 172.16.1.14 255.255.255.255 10.50.2.26
 
-check ping on PC30 to RT 26
+checking availability on PC30 to RT 26
 
 VPCS> trace 172.16.1.14
 trace to 172.16.1.14, 8 hops max, press Ctrl+C to stop
@@ -159,5 +128,33 @@ VPCS> ping 172.16.1.14
 84 bytes from 172.16.1.14 icmp_seq=4 ttl=253 time=6.798 ms
 84 bytes from 172.16.1.14 icmp_seq=5 ttl=253 time=3.436 ms
 
+Interface RT26 reachable for PC30 via 172.16.1.12 
 
+ 1 shutdown link to RT26 on RT28
+for example add route on rt25, rt26
+R25(config)#do sh run | i ip r
+ip route 10.70.10.0 255.255.255.0 172.16.1.13
+ip route 10.70.20.0 255.255.255.0 172.16.1.13
+ip route 10.70.20.0 255.255.255.0 10.50.2.26
+!
+R26(config)#do sh run | i ip r
+ip route 10.70.20.0 255.255.255.0 172.16.1.15
+ip route 10.70.10.0 255.255.255.0 172.16.1.15
+ip route 172.16.1.12 255.255.255.255 10.50.2.25
+
+checking availability on PC31 to RT 25
+
+VPCS> ping 172.16.1.12
+
+84 bytes from 172.16.1.12 icmp_seq=1 ttl=253 time=6.346 ms
+84 bytes from 172.16.1.12 icmp_seq=2 ttl=253 time=3.505 ms
+84 bytes from 172.16.1.12 icmp_seq=3 ttl=253 time=5.945 ms
+84 bytes from 172.16.1.12 icmp_seq=4 ttl=253 time=7.440 ms
+84 bytes from 172.16.1.12 icmp_seq=5 ttl=253 time=7.803 ms
+
+VPCS> trace 172.16.1.12
+trace to 172.16.1.12, 8 hops max, press Ctrl+C to stop
+ 1   10.70.20.1   3.271 ms  3.692 ms  2.362 ms
+ 2   172.16.1.14   2.625 ms  6.804 ms  7.469 ms
+ 3   *10.50.2.25   8.285 ms (ICMP type:3, code:3, Destination port unreachable)  *
 
