@@ -62,13 +62,13 @@
           <mxGeometry x="505" y="425" width="90" height="45" as="geometry" />
         </mxCell>
         <mxCell id="QjlA99lCkYBHLG3m_KXI-15" value="" style="shape=mxgraph.cisco.servers.fileserver;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeColor=#ffffff;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;" vertex="1" parent="1">
-          <mxGeometry x="677" y="520" width="43" height="62" as="geometry" />
+          <mxGeometry x="681" y="510" width="43" height="62" as="geometry" />
         </mxCell>
         <mxCell id="QjlA99lCkYBHLG3m_KXI-16" value="" style="shape=mxgraph.cisco.servers.fileserver;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeColor=#ffffff;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;" vertex="1" parent="1">
-          <mxGeometry x="760" y="520" width="43" height="62" as="geometry" />
+          <mxGeometry x="798" y="490" width="43" height="62" as="geometry" />
         </mxCell>
         <mxCell id="QjlA99lCkYBHLG3m_KXI-18" value="" style="shape=mxgraph.cisco.servers.fileserver;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeColor=#ffffff;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;" vertex="1" parent="1">
-          <mxGeometry x="900" y="520" width="43" height="62" as="geometry" />
+          <mxGeometry x="920" y="450" width="43" height="62" as="geometry" />
         </mxCell>
         <mxCell id="QjlA99lCkYBHLG3m_KXI-19" value="" style="shape=mxgraph.cisco.computers_and_peripherals.pc;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeColor=#ffffff;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;" vertex="1" parent="1">
           <mxGeometry x="86" y="520" width="78" height="70" as="geometry" />
